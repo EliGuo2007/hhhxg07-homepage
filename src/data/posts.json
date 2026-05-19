@@ -1,0 +1,215 @@
+[
+  {
+    "slug": "bonus-lab-graph-optimization-solutions",
+    "title": "算法基础 Bonus Lab：最小树形图与全局最小割题解",
+    "date": "2026.05.19",
+    "tag": "Algorithms",
+    "summary": "基于 bonus lab 两道图论优化题，整理 Chu-Liu/Edmonds/Bock 最小树形图与 Stoer-Wagner 全局最小割的建模、算法思想、实现细节与复杂度。",
+    "readingTime": "14 min read",
+    "content": [
+      {
+        "type": "paragraph",
+        "text": "这篇文章整理自本地 bonus lab 的两道题：第一题是有向带权图上的最小树形图，第二题是无向正权连通图的全局最小割。它们都不是只输出一个数的裸题，而是要求同时恢复一组达到最优值的方案：前者要输出原图边编号，后者要输出一个最小割集合。"
+      },
+      {
+        "type": "heading",
+        "text": "题目一：以根为汇点的有向最小树形图"
+      },
+      {
+        "type": "paragraph",
+        "text": "给定有向带权图 G=(V,E) 和根节点 r，要求每个非根点恰好选择一条从自己出发的边，根节点不选择出边，并且从任意点沿所选边不断前进，最终都能到达根 r。由于边的方向是普通点指向根，所以这是一个“以根为汇点”的最小树形图问题。"
+      },
+      {
+        "type": "list",
+        "items": [
+          "每个 v != r 必须选且只选一条出边。",
+          "根节点 r 不选出边。",
+          "所选边不能形成不含根的有向环，否则环内点永远无法到达根。",
+          "目标是让所选 n-1 条边的总权值最小。"
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "我使用的是 Chu-Liu/Edmonds/Bock 算法的出边型写法。直觉上，先让每个非根点贪心选择自己的最小出边。如果这些边没有形成环，它们就是最优答案；如果形成了环，就说明局部最小选择把路径困在了环里，需要缩环并修正跨环边权。"
+      },
+      {
+        "type": "heading",
+        "text": "最小树形图算法步骤"
+      },
+      {
+        "type": "list",
+        "items": [
+          "扫描所有边，为每个非根点 v 找到权值最小的出边 out[v]。",
+          "如果某个非根点没有出边，说明不可能从它走到根，直接输出 -1。",
+          "沿 out[v] 指针找有向环。若不存在环，所有 out[v] 构成最优解。",
+          "若存在有向环 C，将 C 缩成一个点，并在缩点图上递归求解。",
+          "对于从环内点 u 指向环外点 v 的边，缩点后新权值设为 w(u,v)-w(out[u])。",
+          "递归返回后展开缩点：用递归选中的离环边替换对应顶点的 out 边，其余环内最小出边保留。"
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "边权修正是这个算法最关键的一步。当前层已经暂时把环上每个点的最小出边计入答案。如果最终选择从环内点 x 离开环的边 e=(x,y)，展开时就要用 e 替换 out[x]，所以这条跨环边在缩点图中的真实增量代价应该是 w(e)-w(out[x])。这样缩点图上的最优选择和原图展开后的最优选择只差一个固定常数，最优性得以保持。"
+      },
+      {
+        "type": "heading",
+        "text": "最小树形图实现要点"
+      },
+      {
+        "type": "paragraph",
+        "text": "源码 `mintree.cpp` 中的 Edge 保存当前图边的起点、终点、权值、原始编号，以及一个 base 指针。base 用来在缩点图边被选中时追溯到上一层真实边，最终才能输出原始输入中的边编号。"
+      },
+      {
+        "type": "code",
+        "language": "cpp",
+        "text": "struct Edge {\n    int u, v, id;\n    long long w;\n    shared_ptr<Edge> base;\n};"
+      },
+      {
+        "type": "paragraph",
+        "text": "递归函数 solve(n, root, edges) 的返回值是一组当前图中被选中的边。无环时直接返回所有非根点的最小出边；有环时构造新编号 id[]，建立缩点后的 new_edges，递归求解，再根据递归答案中从 cycle_id 发出的边确定 replaced_vertex，最后展开环。"
+      },
+      {
+        "type": "heading",
+        "text": "最小树形图正确性核心"
+      },
+      {
+        "type": "paragraph",
+        "text": "如果每个非根点的最小出边集合无环，那么它合法，并且对任意合法解 T，每个点从自己出发的边都不可能比 out[v] 更便宜，所以按点求和可得当前集合权值不大于 T。于是它就是最优解。"
+      },
+      {
+        "type": "paragraph",
+        "text": "如果最小出边形成环 C，那么任何合法解都必须至少选择一条从 C 离开的边，否则路径会永远困在 C 中。缩点后，把离环边的权值改成替换代价 w(e)-w(out[u])，就把“打破环的额外成本”显式编码进了新图。递归最优解展开后，既保持每个非根点一条出边，又恰好打破原环，因此得到原图最优解。"
+      },
+      {
+        "type": "paragraph",
+        "text": "复杂度方面，每层递归需要扫描边、找环、重建边集，约为 O(m)。每次缩点至少减少一个点，所以总复杂度为 O(nm)，空间主要来自边集和缩点回溯信息。"
+      },
+      {
+        "type": "heading",
+        "text": "题目二：无向图全局最小割"
+      },
+      {
+        "type": "paragraph",
+        "text": "第二题给定无向正权连通图 G=(V,E)，要求找到一个非空真子集 S，使得 S 与 V-S 之间的割边权值和最小，并输出最小割值与这样一个集合 S。"
+      },
+      {
+        "type": "paragraph",
+        "text": "这题可以用多次最大流，也可以用随机化 Karger 算法。但为了稳定和简洁，我采用确定性的 Stoer-Wagner 全局最小割算法。它不需要枚举源汇点，也没有随机失败概率，在 n <= 100 的规模下非常稳。"
+      },
+      {
+        "type": "heading",
+        "text": "Stoer-Wagner 算法思想"
+      },
+      {
+        "type": "paragraph",
+        "text": "算法反复执行一个“最大邻接搜索阶段”。在一个阶段中，维护集合 A，每次选择尚未加入 A 且与 A 的总连接权最大的顶点加入。设最后加入的两个点分别是 s 和 t，则当前图中把 t 单独分开的割，是一个最小 s-t 割，割值等于 t 加入前到 A 的总连接权。"
+      },
+      {
+        "type": "list",
+        "items": [
+          "每个阶段得到一个候选割：最后加入点 t 所代表的缩点集合。",
+          "记录该候选割的权值与对应原始顶点集合。",
+          "将最后两个点 s 和 t 合并为一个缩点。",
+          "重复阶段，直到只剩一个点。",
+          "所有阶段候选割中的最小值就是全局最小割。"
+        ]
+      },
+      {
+        "type": "heading",
+        "text": "全局最小割实现要点"
+      },
+      {
+        "type": "paragraph",
+        "text": "源码 `mincut.cpp` 使用邻接矩阵 g[i][j] 存储边权。重边直接累加到矩阵中，这一点对割容量计算很自然：同一对点之间的多条边都要计入割边权值。"
+      },
+      {
+        "type": "code",
+        "language": "cpp",
+        "text": "for (int i = 0; i < m; ++i) {\n    int u, v;\n    long long w;\n    cin >> u >> v >> w;\n    --u;\n    --v;\n    g[u][v] += w;\n    g[v][u] += w;\n}"
+      },
+      {
+        "type": "paragraph",
+        "text": "为了输出实际集合，程序维护 group[x] 和 groupSize[x]，表示当前缩点 x 包含哪些原始顶点。每当某个阶段的 weight[last] 刷新最优答案，就把 last 对应缩点内的原始顶点复制到 bestSet 中。"
+      },
+      {
+        "type": "heading",
+        "text": "Stoer-Wagner 正确性直觉"
+      },
+      {
+        "type": "paragraph",
+        "text": "最大邻接搜索的关键性质是：阶段最后加入的点 t 与其他点之间的割，是当前图里一个最小 s-t 割。直观上，搜索过程每一步都把与当前集合 A 联系最紧密的点拉进来，因此任何想把 t 和 s 分开的割，都至少要承担 t 最后连向 A 的那部分权值。"
+      },
+      {
+        "type": "paragraph",
+        "text": "每轮合并 s 和 t 时，如果某个全局最小割不分开它们，那么合并不会改变这个割的表达；如果某个全局最小割分开它们，那么本轮记录的最小 s-t 割已经达到了全局最小割值。因此在不断合并的过程中，全局最小割要么被记录下来，要么被安全保留到后续阶段。取所有阶段的最小候选即可。"
+      },
+      {
+        "type": "paragraph",
+        "text": "邻接矩阵版本共有 n-1 个阶段，每个阶段 O(n^2)，总时间复杂度 O(n^3)，空间复杂度 O(n^2)。对于 n <= 100, m <= 1000 的实验范围，完全足够。"
+      },
+      {
+        "type": "heading",
+        "text": "两个样例"
+      },
+      {
+        "type": "paragraph",
+        "text": "最小树形图样例中，输入 4 个点、7 条边、根为 4，程序输出总权值 4，并选择边编号 3、2、4，对应边为 1->3、2->4、3->2。每个非根点沿所选边最终都能到达根 4。"
+      },
+      {
+        "type": "paragraph",
+        "text": "全局最小割样例中，集合 {2,3} 与补集 {1,4} 之间的割边权值为 1+1+1+1=4，因此输出割值 4 和集合 2 3 是合法的。即使输出其补集 {1,4}，割大小也完全相同。"
+      },
+      {
+        "type": "heading",
+        "text": "总结"
+      },
+      {
+        "type": "paragraph",
+        "text": "这两题的共同点是：局部选择本身不难，难点在于如何保证全局约束。最小树形图里的全局约束是不允许有困住路径的有向环，所以 Chu-Liu/Edmonds/Bock 用缩环和替换代价处理冲突；全局最小割里的全局性来自所有可能的顶点划分，Stoer-Wagner 则用最大邻接搜索和缩点逐步保留最优割。"
+      },
+      {
+        "type": "paragraph",
+        "text": "最终两份程序都采用确定性算法，不仅输出最优值，还能恢复实际方案：`mintree.cpp` 通过边的原始编号回溯输出所选边，`mincut.cpp` 通过维护缩点包含的原始顶点集合输出最小割集合。"
+      }
+    ]
+  },
+  {
+    "slug": "personal-knowledge-base",
+    "title": "Building a personal knowledge base that survives busy weeks",
+    "date": "2026.05.19",
+    "tag": "Systems",
+    "summary": "A practical note on keeping ideas searchable, small, and alive while projects keep moving.",
+    "readingTime": "5 min read",
+    "content": [
+      "A personal knowledge base is most useful when it stays small enough to trust. I like treating notes as working surfaces instead of archives: one idea per file, clear names, and links only when they help me move faster next time.",
+      "The trick is not collecting everything. The trick is lowering the cost of returning to the same thought. A good note should tell future me what I was trying to decide, what I learned, and what I would try next.",
+      "For this site, that means posts can begin as short notes and become essays only when they earn the extra structure. Static publishing keeps the system calm: write, review, build, deploy."
+    ]
+  },
+  {
+    "slug": "frontend-rituals",
+    "title": "Tiny frontend rituals for shipping pages that feel intentional",
+    "date": "2026.05.12",
+    "tag": "Frontend",
+    "summary": "Spacing, copy rhythm, and visual QA habits that make a static site feel less like a template.",
+    "readingTime": "4 min read",
+    "content": [
+      "Before I call a page finished, I check the first viewport, the smallest mobile width, and the awkward middle sizes where layouts often lose their nerve. Most visual bugs are not dramatic. They are just tiny mismatches that add up.",
+      "My favorite ritual is reading the page out loud from top to bottom. If the copy sounds like labels glued onto boxes, the layout usually feels that way too. Better rhythm often starts with fewer words and stronger hierarchy.",
+      "Good static sites do not need heavy machinery. They need careful spacing, readable contrast, real links, and enough personality that the author feels present."
+    ]
+  },
+  {
+    "slug": "neon-notes-readable-cyberpunk",
+    "title": "Neon notes: making cyberpunk UI readable instead of noisy",
+    "date": "2026.04.28",
+    "tag": "Design",
+    "summary": "Contrast, glow, and texture choices for interfaces that look young without fighting the reader.",
+    "readingTime": "6 min read",
+    "content": [
+      "Cyberpunk interfaces are easy to overcook. The useful version is not more glow everywhere; it is a dark base, a few high-voltage accents, and enough quiet space for the reader to breathe.",
+      "I keep neon on the edges: borders, active states, tiny metadata, and a small number of focal elements. Body text stays mostly white or cool gray, because the writing should carry the page after the first impression lands.",
+      "Texture works best when it supports depth instead of shouting. A faint grid, a small scanline treatment, or one strong background image is usually enough. The page should feel electric, not exhausting."
+    ]
+  }
+]
