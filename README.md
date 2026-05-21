@@ -75,6 +75,11 @@ http://127.0.0.1:5173/#/post/my-first-real-post
 This uses hash routing (`#/post/...`) so it works on static hosting without
 extra server rewrite configuration.
 
+## Community Features
+
+Comments, login, and the discussion page are implemented with Supabase.
+Configure them with [COMMUNITY_SETUP.md](D:/ghx/myblog/COMMUNITY_SETUP.md).
+
 ## Deploy To The Internet
 
 Recommended path:

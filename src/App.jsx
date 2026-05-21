@@ -5,16 +5,18 @@ import {
   Cpu,
   Github,
   Mail,
+  MessageSquare,
   Radio,
   Sparkles,
   Terminal,
   Zap,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { BlogComments, DiscussionPage, useSession } from "./components/Community";
 import posts from "./data/posts.json";
 
 function scrollToHashTarget(hash) {
-  if (hash === "#/" || hash.startsWith("#/post/")) {
+  if (hash === "#/" || hash.startsWith("#/post/") || hash === "#/discuss") {
     window.scrollTo({ top: 0, behavior: "smooth" });
     return;
   }
@@ -39,6 +41,7 @@ function Header() {
       <nav aria-label="Primary navigation">
         <a href="#/">Home</a>
         <a href="#blog">Blog</a>
+        <a href="#/discuss">Discuss</a>
         <a href="#notes">Notes</a>
         <a href="#about">About</a>
       </nav>
@@ -63,6 +66,10 @@ function Hero() {
             <a className="button secondary" href="#about">
               <Sparkles size={18} aria-hidden="true" />
               <span>About Me</span>
+            </a>
+            <a className="button tertiary" href="#/discuss">
+              <MessageSquare size={18} aria-hidden="true" />
+              <span>Discuss</span>
             </a>
           </div>
         </div>
@@ -129,7 +136,7 @@ function BlogPreview() {
   );
 }
 
-function BlogPost({ post }) {
+function BlogPost({ post, session }) {
   return (
     <article className="post-page">
       <div className="noise" aria-hidden="true" />
@@ -150,6 +157,7 @@ function BlogPost({ post }) {
             <PostBlock block={block} key={`${post.slug}-${index}`} />
           ))}
         </div>
+        <BlogComments postSlug={post.slug} session={session} />
       </div>
     </article>
   );
@@ -249,6 +257,8 @@ function Footer() {
 
 export default function App() {
   const [hash, setHash] = useState(() => window.location.hash || "#/");
+  const session = useSession();
+  const isDiscussionPage = hash === "#/discuss";
   const currentPost = useMemo(() => {
     const match = hash.match(/^#\/post\/([^/]+)$/);
     if (!match) return null;
@@ -273,7 +283,7 @@ export default function App() {
 
       const nextHash = new URL(link.href).hash;
       if (!nextHash) return;
-      if (nextHash.startsWith("#/post/")) return;
+      if (nextHash.startsWith("#/post/") || nextHash === "#/discuss") return;
 
       event.preventDefault();
 
@@ -297,9 +307,17 @@ export default function App() {
   return (
     <>
       <Header />
-      {currentPost ? (
+      {isDiscussionPage ? (
         <main>
-          {currentPost === "missing" ? <NotFoundPost /> : <BlogPost post={currentPost} />}
+          <DiscussionPage session={session} />
+        </main>
+      ) : currentPost ? (
+        <main>
+          {currentPost === "missing" ? (
+            <NotFoundPost />
+          ) : (
+            <BlogPost post={currentPost} session={session} />
+          )}
         </main>
       ) : (
         <main>
