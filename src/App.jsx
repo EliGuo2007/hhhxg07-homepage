@@ -13,6 +13,16 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import posts from "./data/posts.json";
 
+function scrollToHashTarget(hash) {
+  if (hash === "#/" || hash.startsWith("#/post/")) {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    return;
+  }
+
+  const target = document.getElementById(hash.slice(1));
+  target?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
 const signals = [
   ["Current focus", "Static publishing, local-first notes, UI craft"],
   ["Stack", "React, Vite, Markdown, edge hosting"],
@@ -224,11 +234,11 @@ function Footer() {
         <span>hhhxg07</span>
       </div>
       <div className="footer-links">
-        <a href="https://github.com/" target="_blank" rel="noreferrer">
+        <a href="https://github.com/EliGuo2007" target="_blank" rel="noreferrer">
           <Github size={17} aria-hidden="true" />
           GitHub
         </a>
-        <a href="mailto:hello@example.com">
+        <a href="mailto:guohanxing@outlook.com">
           <Mail size={17} aria-hidden="true" />
           Email
         </a>
@@ -255,13 +265,33 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (hash === "#/" || hash.startsWith("#/post/")) {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      return;
-    }
+    const onLinkClick = (event) => {
+      if (!(event.target instanceof Element)) return;
 
-    const target = document.getElementById(hash.slice(1));
-    target?.scrollIntoView({ behavior: "smooth", block: "start" });
+      const link = event.target.closest('a[href^="#"]');
+      if (!link) return;
+
+      const nextHash = new URL(link.href).hash;
+      if (!nextHash) return;
+      if (nextHash.startsWith("#/post/")) return;
+
+      event.preventDefault();
+
+      if (window.location.hash === nextHash) {
+        setHash(nextHash);
+        scrollToHashTarget(nextHash);
+        return;
+      }
+
+      window.location.hash = nextHash;
+    };
+
+    document.addEventListener("click", onLinkClick);
+    return () => document.removeEventListener("click", onLinkClick);
+  }, []);
+
+  useEffect(() => {
+    scrollToHashTarget(hash);
   }, [hash]);
 
   return (

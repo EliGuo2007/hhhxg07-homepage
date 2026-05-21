@@ -103,6 +103,10 @@ nav a:hover {
   scroll-margin-top: 84px;
 }
 
+#notes {
+  scroll-margin-top: 84px;
+}
+
 .hero {
   min-height: 92vh;
   padding: 128px clamp(20px, 5vw, 72px) 72px;
