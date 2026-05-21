@@ -12,10 +12,13 @@ import { getDisplayName, isSupabaseConfigured, supabase } from "../lib/supabase"
 function AuthPanel({ session }) {
   const signIn = async () => {
     if (!supabase) return;
+    const currentHash = window.location.hash || "#/discuss";
+    window.sessionStorage.setItem("hhhxg07_auth_return_hash", currentHash);
+
     await supabase.auth.signInWithOAuth({
       provider: "github",
       options: {
-        redirectTo: window.location.href,
+        redirectTo: `${window.location.origin}${window.location.pathname}`,
       },
     });
   };
@@ -144,6 +147,15 @@ export function useSession() {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
     const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       setSession(nextSession);
+      if (!nextSession) return;
+
+      const returnHash = window.sessionStorage.getItem("hhhxg07_auth_return_hash");
+      if (!returnHash) return;
+
+      window.sessionStorage.removeItem("hhhxg07_auth_return_hash");
+      if (window.location.hash !== returnHash) {
+        window.location.hash = returnHash;
+      }
     });
 
     return () => data.subscription.unsubscribe();
