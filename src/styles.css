@@ -440,10 +440,14 @@ h2 {
   gap: 18px;
 }
 
-.footer-links a {
+.footer-links a,
+.footer-contact {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+}
+
+.footer-links a {
   transition: color 180ms ease;
 }
 

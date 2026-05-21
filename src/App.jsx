@@ -238,10 +238,10 @@ function Footer() {
           <Github size={17} aria-hidden="true" />
           GitHub
         </a>
-        <a href="mailto:guohanxing@outlook.com">
+        <span className="footer-contact">
           <Mail size={17} aria-hidden="true" />
-          Email
-        </a>
+          guohanxing@outlook.com
+        </span>
       </div>
     </footer>
   );
