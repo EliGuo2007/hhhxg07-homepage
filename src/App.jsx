@@ -248,12 +248,21 @@ export default function App() {
   useEffect(() => {
     const onHashChange = () => {
       setHash(window.location.hash || "#/");
-      window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
     window.addEventListener("hashchange", onHashChange);
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
+
+  useEffect(() => {
+    if (hash === "#/" || hash.startsWith("#/post/")) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    const target = document.getElementById(hash.slice(1));
+    target?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [hash]);
 
   return (
     <>
