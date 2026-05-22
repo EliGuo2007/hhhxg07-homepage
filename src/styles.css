@@ -976,9 +976,22 @@ h2 {
   overflow: visible;
 }
 
-.mascot-image {
+.mascot-figure {
   position: relative;
   z-index: 1;
+  display: grid;
+  place-items: end center;
+  width: 154px;
+  height: 166px;
+  transform-origin: 50% 92%;
+  animation:
+    mascot-idle-sway 4.8s ease-in-out infinite,
+    mascot-idle-breathe 2.8s ease-in-out infinite;
+  will-change: transform;
+}
+
+.mascot-image {
+  display: block;
   width: auto;
   height: 160px;
   max-width: 154px;
@@ -987,11 +1000,21 @@ h2 {
   user-select: none;
   pointer-events: none;
   transform-origin: 50% 100%;
-  animation: mascot-float 3.8s ease-in-out infinite;
+  will-change: transform, filter;
 }
 
-.mascot.active .mascot-image {
-  animation: mascot-bounce 900ms ease both;
+.mascot.action-idle-talk .mascot-figure {
+  animation:
+    mascot-idle-sway 4.8s ease-in-out infinite,
+    mascot-talk-hop 1.15s ease both;
+}
+
+.mascot.action-wave .mascot-figure {
+  animation: mascot-wave-body 1.2s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.mascot.action-wave .mascot-image {
+  animation: mascot-wave-image 1.2s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
 
 .mascot-bubble {
@@ -1016,25 +1039,75 @@ h2 {
   font-weight: 850;
 }
 
-@keyframes mascot-float {
+@keyframes mascot-idle-sway {
   0%,
   100% {
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0) rotate(-1.2deg);
   }
   50% {
-    transform: translateY(-6px);
+    transform: translate3d(0, -7px, 0) rotate(1.4deg);
   }
 }
 
-@keyframes mascot-bounce {
+@keyframes mascot-idle-breathe {
+  0%,
+  100% {
+    scale: 1 1;
+  }
+  50% {
+    scale: 1.018 0.988;
+  }
+}
+
+@keyframes mascot-talk-hop {
   0% {
-    transform: translateY(0) scale(1);
+    transform: translate3d(0, 0, 0) scale(1);
   }
   38% {
-    transform: translateY(-10px) scale(1.04);
+    transform: translate3d(0, -16px, 0) scale(1.045);
+  }
+  66% {
+    transform: translate3d(0, 3px, 0) scale(0.99);
   }
   100% {
-    transform: translateY(0) scale(1);
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes mascot-wave-body {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+  18% {
+    transform: translate3d(0, -12px, 0) rotate(-7deg) scale(1.045);
+  }
+  36% {
+    transform: translate3d(0, -7px, 0) rotate(8deg) scale(1.035);
+  }
+  54% {
+    transform: translate3d(0, -12px, 0) rotate(-6deg) scale(1.045);
+  }
+  72% {
+    transform: translate3d(0, -4px, 0) rotate(5deg) scale(1.02);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+}
+
+@keyframes mascot-wave-image {
+  0%,
+  100% {
+    transform: skewX(0deg);
+    filter: drop-shadow(0 0 0 rgba(39, 247, 255, 0));
+  }
+  30% {
+    transform: skewX(-3deg);
+    filter: drop-shadow(0 0 16px rgba(39, 247, 255, 0.32));
+  }
+  58% {
+    transform: skewX(3deg);
+    filter: drop-shadow(0 0 18px rgba(255, 61, 242, 0.28));
   }
 }
 
@@ -1164,6 +1237,11 @@ h2 {
     max-width: 110px;
   }
 
+  .mascot-figure {
+    width: 110px;
+    height: 118px;
+  }
+
   .mascot-bubble {
     padding-bottom: 8px;
   }
@@ -1175,5 +1253,6 @@ h2 {
   *::after {
     scroll-behavior: auto !important;
     transition: none !important;
+    animation: none !important;
   }
 }

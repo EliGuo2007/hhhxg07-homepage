@@ -345,8 +345,13 @@ function FurinaMascot() {
   });
   const [period, setPeriod] = useState(() => getMascotPeriod());
   const [lineIndex, setLineIndex] = useState(0);
-  const [pulse, setPulse] = useState(false);
+  const [action, setAction] = useState("idle");
   const lines = mascotLineGroups[period];
+
+  const triggerAction = (nextAction = "wave") => {
+    setAction(nextAction);
+    window.setTimeout(() => setAction("idle"), 1200);
+  };
 
   useEffect(() => {
     if (hidden) return undefined;
@@ -355,8 +360,7 @@ function FurinaMascot() {
       const nextPeriod = getMascotPeriod();
       setPeriod(nextPeriod);
       setLineIndex((index) => (index + 1) % mascotLineGroups[nextPeriod].length);
-      setPulse(true);
-      window.setTimeout(() => setPulse(false), 900);
+      triggerAction("idle-talk");
     }, 45000);
 
     return () => window.clearInterval(timer);
@@ -366,8 +370,7 @@ function FurinaMascot() {
     const nextPeriod = getMascotPeriod();
     setPeriod(nextPeriod);
     setLineIndex((index) => (index + 1) % mascotLineGroups[nextPeriod].length);
-    setPulse(true);
-    window.setTimeout(() => setPulse(false), 900);
+    triggerAction("wave");
   };
 
   const close = () => {
@@ -380,8 +383,7 @@ function FurinaMascot() {
     setPeriod(getMascotPeriod());
     setLineIndex(0);
     setHidden(false);
-    setPulse(true);
-    window.setTimeout(() => setPulse(false), 900);
+    triggerAction("wave");
   };
 
   if (hidden) {
@@ -393,12 +395,14 @@ function FurinaMascot() {
   }
 
   return (
-    <aside className={pulse ? "mascot active" : "mascot"} aria-label="Mascot companion">
+    <aside className={`mascot action-${action}`} aria-label="Mascot companion">
       <button className="mascot-close" type="button" onClick={close} aria-label="Close mascot companion">
         <X size={15} aria-hidden="true" />
       </button>
       <button className="mascot-stage" type="button" onClick={speak} aria-label="Talk with mascot companion">
-        <img className="mascot-image" src={FURINA_CHIBI_IMAGE_URL} alt="" draggable="false" />
+        <span className="mascot-figure" aria-hidden="true">
+          <img className="mascot-image" src={FURINA_CHIBI_IMAGE_URL} alt="" draggable="false" />
+        </span>
       </button>
       <div className="mascot-bubble">
         <p>{lines[lineIndex]}</p>
