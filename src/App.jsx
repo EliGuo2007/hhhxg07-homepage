@@ -9,6 +9,7 @@ import {
   Radio,
   Sparkles,
   Terminal,
+  X,
   Zap,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -29,6 +30,15 @@ const signals = [
   ["Current focus", "Static publishing, local-first notes, UI craft"],
   ["Stack", "React, Vite, Markdown, edge hosting"],
   ["Frequency", "Slow blog, fast notes, occasional experiments"],
+];
+
+const mascotLines = [
+  "哼哼，今日的审判主题是：有没有认真写博客？",
+  "旅者，别只看标题，左侧目录也要善用哦。",
+  "若评论区突然安静，那一定是在酝酿更优雅的观点。",
+  "我已经准备好为这篇文章献上掌声了，前提是没有 bug。",
+  "讨论区正在候场，有问题就大胆抛出来吧。",
+  "技术与戏剧一样，都需要一点点华丽的结构。",
 ];
 
 function Header() {
@@ -304,6 +314,78 @@ function Footer() {
   );
 }
 
+function FurinaMascot() {
+  const [hidden, setHidden] = useState(() => {
+    return window.localStorage.getItem("hhhxg07_furina_hidden") === "true";
+  });
+  const [lineIndex, setLineIndex] = useState(0);
+  const [pulse, setPulse] = useState(false);
+
+  useEffect(() => {
+    if (hidden) return undefined;
+
+    const timer = window.setInterval(() => {
+      setLineIndex((index) => (index + 1) % mascotLines.length);
+      setPulse(true);
+      window.setTimeout(() => setPulse(false), 900);
+    }, 18000);
+
+    return () => window.clearInterval(timer);
+  }, [hidden]);
+
+  const speak = () => {
+    setLineIndex((index) => (index + 1) % mascotLines.length);
+    setPulse(true);
+    window.setTimeout(() => setPulse(false), 900);
+  };
+
+  const close = () => {
+    window.localStorage.setItem("hhhxg07_furina_hidden", "true");
+    setHidden(true);
+  };
+
+  const show = () => {
+    window.localStorage.setItem("hhhxg07_furina_hidden", "false");
+    setHidden(false);
+    setPulse(true);
+    window.setTimeout(() => setPulse(false), 900);
+  };
+
+  if (hidden) {
+    return (
+      <button className="mascot-return" type="button" onClick={show}>
+        Show Furina
+      </button>
+    );
+  }
+
+  return (
+    <aside className={pulse ? "mascot active" : "mascot"} aria-label="Furina mascot">
+      <button className="mascot-close" type="button" onClick={close} aria-label="Close Furina mascot">
+        <X size={15} aria-hidden="true" />
+      </button>
+      <button className="mascot-stage" type="button" onClick={speak} aria-label="Talk with Furina">
+        <span className="mascot-character" aria-hidden="true">
+          <span className="mascot-hat" />
+          <span className="mascot-hair left" />
+          <span className="mascot-hair right" />
+          <span className="mascot-face">
+            <span className="mascot-eye blue" />
+            <span className="mascot-eye aqua" />
+            <span className="mascot-mouth" />
+          </span>
+          <span className="mascot-body" />
+          <span className="mascot-ribbon" />
+        </span>
+      </button>
+      <div className="mascot-bubble">
+        <strong>芙宁娜</strong>
+        <p>{mascotLines[lineIndex]}</p>
+      </div>
+    </aside>
+  );
+}
+
 export default function App() {
   const [hash, setHash] = useState(() => window.location.hash || "#/");
   const session = useSession();
@@ -375,6 +457,7 @@ export default function App() {
           <NotesAndAbout />
         </main>
       )}
+      <FurinaMascot />
       <Footer />
     </>
   );
