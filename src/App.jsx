@@ -32,8 +32,7 @@ const signals = [
   ["Frequency", "Slow blog, fast notes, occasional experiments"],
 ];
 
-const FURINA_OFFICIAL_IMAGE_URL =
-  "/assets/furina-official.png";
+const FURINA_CHIBI_IMAGE_URL = "/assets/furina-chibi.png";
 
 const mascotLineGroups = {
   morning: [
@@ -399,7 +398,7 @@ function FurinaMascot() {
         <X size={15} aria-hidden="true" />
       </button>
       <button className="mascot-stage" type="button" onClick={speak} aria-label="Talk with mascot companion">
-        <img className="mascot-image" src={FURINA_OFFICIAL_IMAGE_URL} alt="" draggable="false" />
+        <img className="mascot-image" src={FURINA_CHIBI_IMAGE_URL} alt="" draggable="false" />
       </button>
       <div className="mascot-bubble">
         <p>{lines[lineIndex]}</p>
