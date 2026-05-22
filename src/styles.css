@@ -495,7 +495,67 @@ h2 {
   position: relative;
   z-index: 1;
   width: min(820px, 100%);
+}
+
+.post-layout {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 240px minmax(0, 820px);
+  gap: clamp(28px, 4vw, 56px);
+  align-items: start;
+  width: min(1120px, 100%);
   margin: 0 auto;
+}
+
+.post-toc {
+  position: sticky;
+  top: 104px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  background: rgba(8, 12, 24, 0.72);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
+}
+
+.post-toc > span {
+  display: block;
+  margin-bottom: 14px;
+  color: var(--green);
+  font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.post-toc nav {
+  display: grid;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 750;
+  line-height: 1.45;
+}
+
+.post-toc button {
+  display: block;
+  width: 100%;
+  padding-left: 12px;
+  border-left: 2px solid rgba(39, 247, 255, 0.22);
+  border-top: 0;
+  border-right: 0;
+  border-bottom: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: color 180ms ease, border-color 180ms ease;
+}
+
+.post-toc button:hover {
+  border-color: var(--cyan);
+  color: var(--cyan);
 }
 
 .back-link,
@@ -557,6 +617,7 @@ h2 {
 }
 
 .post-body-heading {
+  scroll-margin-top: 104px;
   margin: 46px 0 18px;
   color: var(--text);
   font-size: clamp(1.55rem, 3vw, 2.35rem);
@@ -898,6 +959,15 @@ h2 {
   .discussion-hero,
   .discussion-grid {
     grid-template-columns: 1fr;
+  }
+
+  .post-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .post-toc {
+    position: relative;
+    top: auto;
   }
 }
 

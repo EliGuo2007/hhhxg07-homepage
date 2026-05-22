@@ -137,37 +137,86 @@ function BlogPreview() {
 }
 
 function BlogPost({ post, session }) {
+  const tocItems = getTableOfContents(post);
+
   return (
     <article className="post-page">
       <div className="noise" aria-hidden="true" />
-      <div className="post-shell">
-        <a className="back-link" href="#blog">
-          <ArrowLeft size={18} aria-hidden="true" />
-          Back to posts
-        </a>
-        <div className="post-page-meta">
-          <span>{post.date}</span>
-          <span>{post.tag}</span>
-          <span>{post.readingTime}</span>
+      <div className="post-layout">
+        <PostToc items={tocItems} />
+        <div className="post-shell">
+          <a className="back-link" href="#blog">
+            <ArrowLeft size={18} aria-hidden="true" />
+            Back to posts
+          </a>
+          <div className="post-page-meta">
+            <span>{post.date}</span>
+            <span>{post.tag}</span>
+            <span>{post.readingTime}</span>
+          </div>
+          <h1>{post.title}</h1>
+          <p className="post-lead">{post.summary}</p>
+          <div className="post-body">
+            {post.content.map((block, index) => (
+              <PostBlock block={block} index={index} key={`${post.slug}-${index}`} />
+            ))}
+          </div>
+          <BlogComments postSlug={post.slug} session={session} />
         </div>
-        <h1>{post.title}</h1>
-        <p className="post-lead">{post.summary}</p>
-        <div className="post-body">
-          {post.content.map((block, index) => (
-            <PostBlock block={block} key={`${post.slug}-${index}`} />
-          ))}
-        </div>
-        <BlogComments postSlug={post.slug} session={session} />
       </div>
     </article>
   );
 }
 
-function PostBlock({ block }) {
+function getHeadingId(index) {
+  return `section-${index}`;
+}
+
+function getTableOfContents(post) {
+  return post.content
+    .map((block, index) => {
+      if (typeof block === "string" || block.type !== "heading") return null;
+      return {
+        id: getHeadingId(index),
+        text: block.text,
+      };
+    })
+    .filter(Boolean);
+}
+
+function PostToc({ items }) {
+  if (items.length === 0) return null;
+
+  const scrollToSection = (id) => {
+    document.getElementById(id)?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
+
+  return (
+    <aside className="post-toc" aria-label="Article table of contents">
+      <span>Contents</span>
+      <nav>
+        {items.map((item) => (
+          <button type="button" key={item.id} onClick={() => scrollToSection(item.id)}>
+            {item.text}
+          </button>
+        ))}
+      </nav>
+    </aside>
+  );
+}
+
+function PostBlock({ block, index }) {
   if (typeof block === "string") return <p>{block}</p>;
 
   if (block.type === "heading") {
-    return <h2 className="post-body-heading">{block.text}</h2>;
+    return (
+      <h2 className="post-body-heading" id={getHeadingId(index)}>
+        {block.text}
+      </h2>
+    );
   }
 
   if (block.type === "list") {
