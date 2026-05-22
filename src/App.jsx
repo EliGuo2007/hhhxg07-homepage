@@ -32,14 +32,40 @@ const signals = [
   ["Frequency", "Slow blog, fast notes, occasional experiments"],
 ];
 
-const mascotLines = [
-  "哼哼，今日的审判主题是：有没有认真写博客？",
-  "旅者，别只看标题，左侧目录也要善用哦。",
-  "若评论区突然安静，那一定是在酝酿更优雅的观点。",
-  "我已经准备好为这篇文章献上掌声了，前提是没有 bug。",
-  "讨论区正在候场，有问题就大胆抛出来吧。",
-  "技术与戏剧一样，都需要一点点华丽的结构。",
-];
+const FURINA_OFFICIAL_IMAGE_URL =
+  "/assets/furina-official.png";
+
+const mascotLineGroups = {
+  morning: [
+    "早安。今天的开场白已经准备好了，轮到你写下第一行灵感。",
+    "晨光正好，适合把待办事项排成一场漂亮的审判。",
+    "新的篇章已经开幕，不许用拖延当作辩词哦。",
+  ],
+  afternoon: [
+    "午后的思路最适合梳理成目录，清晰就是优雅。",
+    "如果代码开始沉默，那就给它一点耐心和一杯水。",
+    "现在是推进进度的好时机，把想法大胆发布出来吧。",
+  ],
+  evening: [
+    "夜幕前的复盘很重要，今日的证据请整理成博客。",
+    "讨论区正在亮灯，任何好问题都值得登上舞台。",
+    "傍晚适合修改措辞，让观点像聚光灯一样准确。",
+  ],
+  night: [
+    "深夜场开始。灵感可以晚到，但不要忘记保存。",
+    "若你还在调试，那我宣布：坚持本身也应获得掌声。",
+    "夜色很安静，正适合把复杂问题写成清楚的答案。",
+  ],
+};
+
+function getMascotPeriod(date = new Date()) {
+  const hour = date.getHours();
+
+  if (hour >= 5 && hour < 11) return "morning";
+  if (hour >= 11 && hour < 17) return "afternoon";
+  if (hour >= 17 && hour < 22) return "evening";
+  return "night";
+}
 
 function Header() {
   return (
@@ -318,23 +344,29 @@ function FurinaMascot() {
   const [hidden, setHidden] = useState(() => {
     return window.localStorage.getItem("hhhxg07_furina_hidden") === "true";
   });
+  const [period, setPeriod] = useState(() => getMascotPeriod());
   const [lineIndex, setLineIndex] = useState(0);
   const [pulse, setPulse] = useState(false);
+  const lines = mascotLineGroups[period];
 
   useEffect(() => {
     if (hidden) return undefined;
 
     const timer = window.setInterval(() => {
-      setLineIndex((index) => (index + 1) % mascotLines.length);
+      const nextPeriod = getMascotPeriod();
+      setPeriod(nextPeriod);
+      setLineIndex((index) => (index + 1) % mascotLineGroups[nextPeriod].length);
       setPulse(true);
       window.setTimeout(() => setPulse(false), 900);
-    }, 18000);
+    }, 45000);
 
     return () => window.clearInterval(timer);
   }, [hidden]);
 
   const speak = () => {
-    setLineIndex((index) => (index + 1) % mascotLines.length);
+    const nextPeriod = getMascotPeriod();
+    setPeriod(nextPeriod);
+    setLineIndex((index) => (index + 1) % mascotLineGroups[nextPeriod].length);
     setPulse(true);
     window.setTimeout(() => setPulse(false), 900);
   };
@@ -346,6 +378,8 @@ function FurinaMascot() {
 
   const show = () => {
     window.localStorage.setItem("hhhxg07_furina_hidden", "false");
+    setPeriod(getMascotPeriod());
+    setLineIndex(0);
     setHidden(false);
     setPulse(true);
     window.setTimeout(() => setPulse(false), 900);
@@ -354,33 +388,21 @@ function FurinaMascot() {
   if (hidden) {
     return (
       <button className="mascot-return" type="button" onClick={show}>
-        Show Furina
+        Show Companion
       </button>
     );
   }
 
   return (
-    <aside className={pulse ? "mascot active" : "mascot"} aria-label="Furina mascot">
-      <button className="mascot-close" type="button" onClick={close} aria-label="Close Furina mascot">
+    <aside className={pulse ? "mascot active" : "mascot"} aria-label="Mascot companion">
+      <button className="mascot-close" type="button" onClick={close} aria-label="Close mascot companion">
         <X size={15} aria-hidden="true" />
       </button>
-      <button className="mascot-stage" type="button" onClick={speak} aria-label="Talk with Furina">
-        <span className="mascot-character" aria-hidden="true">
-          <span className="mascot-hat" />
-          <span className="mascot-hair left" />
-          <span className="mascot-hair right" />
-          <span className="mascot-face">
-            <span className="mascot-eye blue" />
-            <span className="mascot-eye aqua" />
-            <span className="mascot-mouth" />
-          </span>
-          <span className="mascot-body" />
-          <span className="mascot-ribbon" />
-        </span>
+      <button className="mascot-stage" type="button" onClick={speak} aria-label="Talk with mascot companion">
+        <img className="mascot-image" src={FURINA_OFFICIAL_IMAGE_URL} alt="" draggable="false" />
       </button>
       <div className="mascot-bubble">
-        <strong>芙宁娜</strong>
-        <p>{mascotLines[lineIndex]}</p>
+        <p>{lines[lineIndex]}</p>
       </div>
     </aside>
   );
