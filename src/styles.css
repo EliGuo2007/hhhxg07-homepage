@@ -787,9 +787,18 @@ h2 {
 }
 
 .comment-list,
-.comment-thread {
+.comment-node,
+.comment-children {
   display: grid;
   gap: 14px;
+}
+
+.comment-node {
+  margin-left: min(calc(var(--comment-depth, 0) * 28px), 112px);
+}
+
+.comment-children {
+  gap: 12px;
 }
 
 .comment,
@@ -808,7 +817,6 @@ h2 {
 }
 
 .comment.reply {
-  margin-left: 28px;
   border-color: var(--line-pink);
 }
 
@@ -1218,7 +1226,11 @@ h2 {
   }
 
   .comment.reply {
-    margin-left: 12px;
+    border-color: var(--line-pink);
+  }
+
+  .comment-node {
+    margin-left: min(calc(var(--comment-depth, 0) * 14px), 42px);
   }
 
   .mascot {

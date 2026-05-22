@@ -107,35 +107,70 @@ function EmptyState({ children }) {
   );
 }
 
-function CommentItem({ comment, session, onReply }) {
+function CommentItem({ comment, session, onReply, depth = 0, canReply = true }) {
   const [replying, setReplying] = useState(false);
 
   return (
-    <article className={comment.parent_id ? "comment reply" : "comment"}>
-      <div className="comment-meta">
-        <strong>{comment.author_name}</strong>
-        <span>{new Date(comment.created_at).toLocaleString()}</span>
-      </div>
-      <p>{comment.body}</p>
-      {!comment.parent_id && (
-        <button className="text-button" type="button" onClick={() => setReplying((value) => !value)}>
-          Reply
-        </button>
+    <div className="comment-node" style={{ "--comment-depth": depth }}>
+      <article className={comment.parent_id ? "comment reply" : "comment"}>
+        <div className="comment-meta">
+          <strong>{comment.author_name}</strong>
+          <span>{new Date(comment.created_at).toLocaleString()}</span>
+        </div>
+        <p>{comment.body}</p>
+        {canReply && (
+          <button className="text-button" type="button" onClick={() => setReplying((value) => !value)}>
+            Reply
+          </button>
+        )}
+        {canReply && replying && (
+          <Composer
+            compact
+            label="Reply"
+            placeholder={session ? "Write a reply..." : "Sign in to reply."}
+            disabled={!session}
+            onSubmit={async (body) => {
+              await onReply(body, comment.id);
+              setReplying(false);
+            }}
+          />
+        )}
+      </article>
+
+      {comment.children?.length > 0 && (
+        <div className="comment-children">
+          {comment.children.map((child) => (
+            <CommentItem
+              comment={child}
+              depth={depth + 1}
+              key={child.id}
+              session={session}
+              onReply={onReply}
+              canReply={canReply}
+            />
+          ))}
+        </div>
       )}
-      {replying && (
-        <Composer
-          compact
-          label="Reply"
-          placeholder={session ? "Write a reply..." : "Sign in to reply."}
-          disabled={!session}
-          onSubmit={async (body) => {
-            await onReply(comment.id, body);
-            setReplying(false);
-          }}
-        />
-      )}
-    </article>
+    </div>
   );
+}
+
+function buildCommentTree(comments) {
+  const nodesById = new Map(
+    comments.map((comment) => [comment.id, { ...comment, children: [] }]),
+  );
+  const roots = [];
+
+  nodesById.forEach((node) => {
+    if (node.parent_id && nodesById.has(node.parent_id)) {
+      nodesById.get(node.parent_id).children.push(node);
+      return;
+    }
+
+    roots.push(node);
+  });
+
+  return roots;
 }
 
 export function useSession() {
@@ -207,17 +242,7 @@ export function BlogComments({ postSlug, session }) {
     await loadComments();
   };
 
-  const roots = useMemo(
-    () => comments.filter((comment) => !comment.parent_id),
-    [comments],
-  );
-  const repliesByParent = useMemo(() => {
-    return comments.reduce((map, comment) => {
-      if (!comment.parent_id) return map;
-      map[comment.parent_id] = [...(map[comment.parent_id] || []), comment];
-      return map;
-    }, {});
-  }, [comments]);
+  const commentTree = useMemo(() => buildCommentTree(comments), [comments]);
 
   return (
     <section className="community-section">
@@ -238,15 +263,10 @@ export function BlogComments({ postSlug, session }) {
 
       {error && <p className="community-error">{error}</p>}
       {loading && <EmptyState>Loading comments...</EmptyState>}
-      {!loading && roots.length === 0 && <EmptyState>No comments yet.</EmptyState>}
+      {!loading && commentTree.length === 0 && <EmptyState>No comments yet.</EmptyState>}
       <div className="comment-list">
-        {roots.map((comment) => (
-          <div className="comment-thread" key={comment.id}>
-            <CommentItem comment={comment} session={session} onReply={addComment} />
-            {(repliesByParent[comment.id] || []).map((reply) => (
-              <CommentItem comment={reply} key={reply.id} session={session} onReply={addComment} />
-            ))}
-          </div>
+        {commentTree.map((comment) => (
+          <CommentItem comment={comment} key={comment.id} session={session} onReply={addComment} />
         ))}
       </div>
     </section>
@@ -412,7 +432,7 @@ export function DiscussionPage({ session }) {
 
             <div className="comment-list">
               {replies.map((reply) => (
-                <CommentItem comment={reply} key={reply.id} session={session} onReply={() => {}} />
+                <CommentItem comment={reply} key={reply.id} session={session} onReply={() => {}} canReply={false} />
               ))}
             </div>
 
