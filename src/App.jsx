@@ -32,7 +32,7 @@ const signals = [
   ["Frequency", "Slow blog, fast notes, occasional experiments"],
 ];
 
-const FURINA_CHIBI_IMAGE_URL = "/assets/furina-chibi.png";
+const FURINA_CHIBI_IMAGE_URL = "/assets/furina-mascot-wave.png";
 
 const mascotLineGroups = {
   morning: [
