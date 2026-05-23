@@ -32,7 +32,20 @@ const signals = [
   ["Frequency", "Slow blog, fast notes, occasional experiments"],
 ];
 
-const FURINA_CHIBI_IMAGE_URL = "/assets/furina-mascot-wave.png";
+const mascotExpressions = {
+  surprise: "/assets/furina-expression-surprise.png",
+  teary: "/assets/furina-expression-teary.png",
+  laugh: "/assets/furina-expression-laugh.png",
+  wave: "/assets/furina-expression-wave.png",
+};
+
+const mascotIdleExpressions = ["surprise", "teary", "laugh"];
+
+const mascotManualActions = [
+  { action: "wave", expression: "wave" },
+  { action: "cheer", expression: "laugh" },
+  { action: "shake", expression: "teary" },
+];
 
 const mascotLineGroups = {
   morning: [
@@ -393,11 +406,13 @@ function FurinaMascot() {
   const [period, setPeriod] = useState(() => getMascotPeriod());
   const [lineIndex, setLineIndex] = useState(0);
   const [action, setAction] = useState("idle");
+  const [expression, setExpression] = useState("wave");
+  const [manualActionIndex, setManualActionIndex] = useState(0);
   const actionTimeoutRef = useRef(null);
   const actionFrameRef = useRef(null);
   const lines = mascotLineGroups[period];
 
-  const triggerAction = (nextAction = "wave") => {
+  const triggerAction = (nextAction = "wave", nextExpression = expression) => {
     if (actionTimeoutRef.current) {
       window.clearTimeout(actionTimeoutRef.current);
     }
@@ -406,6 +421,7 @@ function FurinaMascot() {
     }
 
     setAction("idle");
+    setExpression(nextExpression);
     actionFrameRef.current = window.requestAnimationFrame(() => {
       setAction(nextAction);
       actionTimeoutRef.current = window.setTimeout(() => setAction("idle"), 1200);
@@ -424,19 +440,24 @@ function FurinaMascot() {
 
     const timer = window.setInterval(() => {
       const nextPeriod = getMascotPeriod();
+      const nextExpression =
+        mascotIdleExpressions[(lineIndex + 1) % mascotIdleExpressions.length];
       setPeriod(nextPeriod);
       setLineIndex((index) => (index + 1) % mascotLineGroups[nextPeriod].length);
-      triggerAction("idle-talk");
+      triggerAction("idle-talk", nextExpression);
     }, 45000);
 
     return () => window.clearInterval(timer);
-  }, [hidden]);
+  }, [expression, hidden, lineIndex]);
 
   const speak = () => {
     const nextPeriod = getMascotPeriod();
+    const nextManualAction = mascotManualActions[manualActionIndex % mascotManualActions.length];
+
     setPeriod(nextPeriod);
     setLineIndex((index) => (index + 1) % mascotLineGroups[nextPeriod].length);
-    triggerAction("wave");
+    setManualActionIndex((index) => index + 1);
+    triggerAction(nextManualAction.action, nextManualAction.expression);
   };
 
   const close = () => {
@@ -449,8 +470,9 @@ function FurinaMascot() {
     window.localStorage.setItem("hhhxg07_furina_hidden", "false");
     setPeriod(getMascotPeriod());
     setLineIndex(0);
+    setExpression("wave");
     setHidden(false);
-    triggerAction("wave");
+    triggerAction("wave", "wave");
   };
 
   if (hidden) {
@@ -468,7 +490,7 @@ function FurinaMascot() {
       </button>
       <button className="mascot-stage" type="button" onClick={speak} aria-label="Talk with mascot companion">
         <span className="mascot-figure" aria-hidden="true">
-          <img className="mascot-image" src={FURINA_CHIBI_IMAGE_URL} alt="" draggable="false" />
+          <img className="mascot-image" src={mascotExpressions[expression]} alt="" draggable="false" />
         </span>
       </button>
       <div className="mascot-bubble">

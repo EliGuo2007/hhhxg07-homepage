@@ -1072,6 +1072,22 @@ h3.post-body-heading {
   animation: mascot-wave-image 1.2s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
 
+.mascot.action-cheer .mascot-figure {
+  animation: mascot-cheer-body 1.2s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.mascot.action-cheer .mascot-image {
+  animation: mascot-cheer-image 1.2s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.mascot.action-shake .mascot-figure {
+  animation: mascot-shake-body 1.2s ease both;
+}
+
+.mascot.action-shake .mascot-image {
+  animation: mascot-shake-image 1.2s ease both;
+}
+
 .mascot-bubble {
   position: relative;
   padding: 0 0 12px;
@@ -1163,6 +1179,69 @@ h3.post-body-heading {
   58% {
     transform: skewX(3deg);
     filter: drop-shadow(0 0 18px rgba(255, 61, 242, 0.28));
+  }
+}
+
+@keyframes mascot-cheer-body {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  22% {
+    transform: translate3d(0, -18px, 0) scale(1.08);
+  }
+  46% {
+    transform: translate3d(0, 2px, 0) scale(0.98);
+  }
+  68% {
+    transform: translate3d(0, -10px, 0) scale(1.04);
+  }
+}
+
+@keyframes mascot-cheer-image {
+  0%,
+  100% {
+    transform: rotate(0deg);
+    filter: drop-shadow(0 0 0 rgba(185, 255, 61, 0));
+  }
+  30% {
+    transform: rotate(-5deg);
+    filter: drop-shadow(0 0 16px rgba(185, 255, 61, 0.34));
+  }
+  60% {
+    transform: rotate(5deg);
+    filter: drop-shadow(0 0 18px rgba(39, 247, 255, 0.32));
+  }
+}
+
+@keyframes mascot-shake-body {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  16% {
+    transform: translate3d(-5px, -2px, 0) rotate(-4deg);
+  }
+  32% {
+    transform: translate3d(6px, -3px, 0) rotate(4deg);
+  }
+  48% {
+    transform: translate3d(-4px, -1px, 0) rotate(-3deg);
+  }
+  64% {
+    transform: translate3d(3px, 0, 0) rotate(2deg);
+  }
+}
+
+@keyframes mascot-shake-image {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0 rgba(255, 61, 242, 0));
+  }
+  45% {
+    transform: scale(0.98);
+    filter: drop-shadow(0 0 15px rgba(255, 61, 242, 0.24));
   }
 }
 
