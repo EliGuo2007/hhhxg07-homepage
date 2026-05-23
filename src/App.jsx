@@ -12,7 +12,7 @@ import {
   X,
   Zap,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { BlogComments, DiscussionPage, useSession } from "./components/Community";
 import posts from "./data/posts.json";
 
@@ -213,16 +213,55 @@ function getTableOfContents(post) {
       if (typeof block === "string" || block.type !== "heading") return null;
       return {
         id: getHeadingId(index),
+        level: block.level || inferHeadingLevel(block.text),
         text: block.text,
       };
     })
     .filter(Boolean);
 }
 
+function inferHeadingLevel(text) {
+  if (/^(题目[一二三四五六七八九十]|总结|两个样例)/.test(text)) return 2;
+  return 3;
+}
+
 function PostToc({ items }) {
+  const [activeId, setActiveId] = useState(items[0]?.id || "");
+
+  useEffect(() => {
+    if (items.length === 0) return undefined;
+
+    const headings = items
+      .map((item) => document.getElementById(item.id))
+      .filter(Boolean);
+
+    if (headings.length === 0) return undefined;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+
+        if (visible[0]?.target.id) {
+          setActiveId(visible[0].target.id);
+        }
+      },
+      {
+        rootMargin: "-18% 0px -64% 0px",
+        threshold: [0, 0.1, 0.6],
+      },
+    );
+
+    headings.forEach((heading) => observer.observe(heading));
+
+    return () => observer.disconnect();
+  }, [items]);
+
   if (items.length === 0) return null;
 
   const scrollToSection = (id) => {
+    setActiveId(id);
     document.getElementById(id)?.scrollIntoView({
       behavior: "smooth",
       block: "start",
@@ -234,7 +273,13 @@ function PostToc({ items }) {
       <span>Contents</span>
       <nav>
         {items.map((item) => (
-          <button type="button" key={item.id} onClick={() => scrollToSection(item.id)}>
+          <button
+            className={item.id === activeId ? "active" : ""}
+            data-level={item.level}
+            type="button"
+            key={item.id}
+            onClick={() => scrollToSection(item.id)}
+          >
             {item.text}
           </button>
         ))}
@@ -247,10 +292,12 @@ function PostBlock({ block, index }) {
   if (typeof block === "string") return <p>{block}</p>;
 
   if (block.type === "heading") {
+    const HeadingTag = (block.level || inferHeadingLevel(block.text)) >= 3 ? "h3" : "h2";
+
     return (
-      <h2 className="post-body-heading" id={getHeadingId(index)}>
+      <HeadingTag className="post-body-heading" id={getHeadingId(index)}>
         {block.text}
-      </h2>
+      </HeadingTag>
     );
   }
 
@@ -346,12 +393,31 @@ function FurinaMascot() {
   const [period, setPeriod] = useState(() => getMascotPeriod());
   const [lineIndex, setLineIndex] = useState(0);
   const [action, setAction] = useState("idle");
+  const actionTimeoutRef = useRef(null);
+  const actionFrameRef = useRef(null);
   const lines = mascotLineGroups[period];
 
   const triggerAction = (nextAction = "wave") => {
-    setAction(nextAction);
-    window.setTimeout(() => setAction("idle"), 1200);
+    if (actionTimeoutRef.current) {
+      window.clearTimeout(actionTimeoutRef.current);
+    }
+    if (actionFrameRef.current) {
+      window.cancelAnimationFrame(actionFrameRef.current);
+    }
+
+    setAction("idle");
+    actionFrameRef.current = window.requestAnimationFrame(() => {
+      setAction(nextAction);
+      actionTimeoutRef.current = window.setTimeout(() => setAction("idle"), 1200);
+    });
   };
+
+  useEffect(() => {
+    return () => {
+      if (actionTimeoutRef.current) window.clearTimeout(actionTimeoutRef.current);
+      if (actionFrameRef.current) window.cancelAnimationFrame(actionFrameRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (hidden) return undefined;
@@ -375,6 +441,7 @@ function FurinaMascot() {
 
   const close = () => {
     window.localStorage.setItem("hhhxg07_furina_hidden", "true");
+    setAction("idle");
     setHidden(true);
   };
 

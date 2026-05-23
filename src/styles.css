@@ -530,7 +530,7 @@ h2 {
 
 .post-toc nav {
   display: grid;
-  gap: 10px;
+  gap: 8px;
   color: var(--muted);
   font-size: 0.9rem;
   font-weight: 750;
@@ -540,7 +540,8 @@ h2 {
 .post-toc button {
   display: block;
   width: 100%;
-  padding-left: 12px;
+  min-height: 32px;
+  padding: 4px 0 4px 12px;
   border-left: 2px solid rgba(39, 247, 255, 0.22);
   border-top: 0;
   border-right: 0;
@@ -550,12 +551,38 @@ h2 {
   font: inherit;
   text-align: left;
   cursor: pointer;
-  transition: color 180ms ease, border-color 180ms ease;
+  transition:
+    color 180ms ease,
+    border-color 180ms ease,
+    font-size 180ms ease,
+    transform 180ms ease,
+    text-shadow 180ms ease;
 }
 
-.post-toc button:hover {
+.post-toc button[data-level="3"] {
+  margin-left: 14px;
+  padding-left: 14px;
+  font-size: 0.82rem;
+  font-weight: 650;
+  opacity: 0.86;
+}
+
+.post-toc button:hover,
+.post-toc button.active {
   border-color: var(--cyan);
   color: var(--cyan);
+}
+
+.post-toc button.active {
+  font-size: 0.98rem;
+  font-weight: 950;
+  opacity: 1;
+  text-shadow: 0 0 18px rgba(39, 247, 255, 0.64);
+  transform: translateX(4px);
+}
+
+.post-toc button[data-level="3"].active {
+  font-size: 0.9rem;
 }
 
 .back-link,
@@ -623,6 +650,12 @@ h2 {
   font-size: clamp(1.55rem, 3vw, 2.35rem);
   line-height: 1.12;
   text-shadow: 0 0 18px rgba(39, 247, 255, 0.22);
+}
+
+h3.post-body-heading {
+  margin-top: 36px;
+  color: #d8fcff;
+  font-size: clamp(1.25rem, 2.4vw, 1.72rem);
 }
 
 .post-body-list {
@@ -955,6 +988,8 @@ h2 {
   background: transparent;
   color: var(--text);
   cursor: pointer;
+  outline: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .mascot-close {
@@ -972,6 +1007,14 @@ h2 {
 .mascot-return:hover {
   color: var(--cyan);
   border-color: var(--cyan);
+}
+
+.mascot-close:focus,
+.mascot-stage:focus,
+.mascot-close:focus-visible,
+.mascot-stage:focus-visible {
+  outline: 0;
+  box-shadow: none;
 }
 
 .mascot-stage {
