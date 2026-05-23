@@ -39,34 +39,32 @@ const mascotExpressions = {
   wave: "/assets/furina-expression-wave.png",
 };
 
-const mascotIdleExpressions = ["surprise", "teary", "laugh"];
-
 const mascotManualActions = [
-  { action: "wave", expression: "wave" },
-  { action: "cheer", expression: "laugh" },
-  { action: "shake", expression: "teary" },
+  "wave",
+  "cheer",
+  "shake",
 ];
 
 const mascotLineGroups = {
   morning: [
-    "早安。今天的开场白已经准备好了，轮到你写下第一行灵感。",
-    "晨光正好，适合把待办事项排成一场漂亮的审判。",
-    "新的篇章已经开幕，不许用拖延当作辩词哦。",
+    { text: "早安。今天的开场白已经准备好了，轮到你写下第一行灵感。", expression: "wave" },
+    { text: "晨光正好，适合把待办事项排成一场漂亮的审判。", expression: "surprise" },
+    { text: "新的篇章已经开幕，不许用拖延当作辩词哦。", expression: "laugh" },
   ],
   afternoon: [
-    "午后的思路最适合梳理成目录，清晰就是优雅。",
-    "如果代码开始沉默，那就给它一点耐心和一杯水。",
-    "现在是推进进度的好时机，把想法大胆发布出来吧。",
+    { text: "午后的思路最适合梳理成目录，清晰就是优雅。", expression: "surprise" },
+    { text: "如果代码开始沉默，那就给它一点耐心和一杯水。", expression: "teary" },
+    { text: "现在是推进进度的好时机，把想法大胆发布出来吧。", expression: "laugh" },
   ],
   evening: [
-    "夜幕前的复盘很重要，今日的证据请整理成博客。",
-    "讨论区正在亮灯，任何好问题都值得登上舞台。",
-    "傍晚适合修改措辞，让观点像聚光灯一样准确。",
+    { text: "夜幕前的复盘很重要，今日的证据请整理成博客。", expression: "surprise" },
+    { text: "讨论区正在亮灯，任何好问题都值得登上舞台。", expression: "wave" },
+    { text: "傍晚适合修改措辞，让观点像聚光灯一样准确。", expression: "laugh" },
   ],
   night: [
-    "深夜场开始。灵感可以晚到，但不要忘记保存。",
-    "若你还在调试，那我宣布：坚持本身也应获得掌声。",
-    "夜色很安静，正适合把复杂问题写成清楚的答案。",
+    { text: "深夜场开始。灵感可以晚到，但不要忘记保存。", expression: "surprise" },
+    { text: "若你还在调试，那我宣布：坚持本身也应获得掌声。", expression: "teary" },
+    { text: "夜色很安静，正适合把复杂问题写成清楚的答案。", expression: "laugh" },
   ],
 };
 
@@ -77,6 +75,14 @@ function getMascotPeriod(date = new Date()) {
   if (hour >= 11 && hour < 17) return "afternoon";
   if (hour >= 17 && hour < 22) return "evening";
   return "night";
+}
+
+function getNextMascotLine(period, index) {
+  const nextIndex = (index + 1) % mascotLineGroups[period].length;
+  return {
+    index: nextIndex,
+    line: mascotLineGroups[period][nextIndex],
+  };
 }
 
 function Header() {
@@ -411,6 +417,7 @@ function FurinaMascot() {
   const actionTimeoutRef = useRef(null);
   const actionFrameRef = useRef(null);
   const lines = mascotLineGroups[period];
+  const currentLine = lines[lineIndex] || lines[0];
 
   const triggerAction = (nextAction = "wave", nextExpression = expression) => {
     if (actionTimeoutRef.current) {
@@ -440,24 +447,24 @@ function FurinaMascot() {
 
     const timer = window.setInterval(() => {
       const nextPeriod = getMascotPeriod();
-      const nextExpression =
-        mascotIdleExpressions[(lineIndex + 1) % mascotIdleExpressions.length];
+      const next = getNextMascotLine(nextPeriod, lineIndex);
       setPeriod(nextPeriod);
-      setLineIndex((index) => (index + 1) % mascotLineGroups[nextPeriod].length);
-      triggerAction("idle-talk", nextExpression);
+      setLineIndex(next.index);
+      triggerAction("idle-talk", next.line.expression);
     }, 45000);
 
     return () => window.clearInterval(timer);
-  }, [expression, hidden, lineIndex]);
+  }, [hidden, lineIndex]);
 
   const speak = () => {
     const nextPeriod = getMascotPeriod();
+    const next = getNextMascotLine(nextPeriod, lineIndex);
     const nextManualAction = mascotManualActions[manualActionIndex % mascotManualActions.length];
 
     setPeriod(nextPeriod);
-    setLineIndex((index) => (index + 1) % mascotLineGroups[nextPeriod].length);
+    setLineIndex(next.index);
     setManualActionIndex((index) => index + 1);
-    triggerAction(nextManualAction.action, nextManualAction.expression);
+    triggerAction(nextManualAction, next.line.expression);
   };
 
   const close = () => {
@@ -468,11 +475,13 @@ function FurinaMascot() {
 
   const show = () => {
     window.localStorage.setItem("hhhxg07_furina_hidden", "false");
-    setPeriod(getMascotPeriod());
+    const nextPeriod = getMascotPeriod();
+    const firstLine = mascotLineGroups[nextPeriod][0];
+    setPeriod(nextPeriod);
     setLineIndex(0);
-    setExpression("wave");
+    setExpression(firstLine.expression);
     setHidden(false);
-    triggerAction("wave", "wave");
+    triggerAction("wave", firstLine.expression);
   };
 
   if (hidden) {
@@ -494,7 +503,7 @@ function FurinaMascot() {
         </span>
       </button>
       <div className="mascot-bubble">
-        <p>{lines[lineIndex]}</p>
+        <p>{currentLine.text}</p>
       </div>
     </aside>
   );
