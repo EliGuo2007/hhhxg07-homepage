@@ -472,7 +472,7 @@ h2 {
   position: relative;
   min-height: calc(100vh - 86px);
   padding: 132px clamp(20px, 5vw, 72px) 108px;
-  overflow: hidden;
+  overflow: visible;
   background:
     radial-gradient(circle at 74% 8%, rgba(255, 61, 242, 0.16), transparent 28rem),
     radial-gradient(circle at 18% 22%, rgba(39, 247, 255, 0.13), transparent 24rem),
@@ -511,6 +511,10 @@ h2 {
 .post-toc {
   position: sticky;
   top: 104px;
+  align-self: start;
+  max-height: calc(100vh - 132px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 18px;
   border: 1px solid var(--line);
   background: rgba(8, 12, 24, 0.72);
@@ -1210,8 +1214,10 @@ h3.post-body-heading {
   }
 
   .post-toc {
-    position: relative;
-    top: auto;
+    position: sticky;
+    top: 116px;
+    z-index: 5;
+    max-height: min(42vh, 320px);
   }
 }
 
